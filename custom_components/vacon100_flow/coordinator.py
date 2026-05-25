@@ -1,4 +1,4 @@
-"""Coordinator Modbus TCP pour Vacon 100 FLOW — compatible pymodbus 3.11."""
+"""Coordinator Modbus TCP pour Vacon 100 FLOW — compatible pymodbus 3.8+."""
 from __future__ import annotations
 
 import logging
@@ -45,7 +45,7 @@ class VaconCoordinator(DataUpdateCoordinator):
         client = self._get_client()
         data: dict[str, Any] = {}
 
-        result = client.read_input_registers(0, 11, self.slave_id)
+        result = client.read_input_registers(address=0, count=11, slave=self.slave_id)
         if result.isError():
             raise UpdateFailed(f"Erreur lecture registres: {result}")
 
@@ -70,7 +70,7 @@ class VaconCoordinator(DataUpdateCoordinator):
         data["at_setpoint"] = bool(sw & (1 << STATUS_AT_SETPOINT))
         data["remote"]      = bool(sw & (1 << STATUS_REMOTE))
 
-        hr = client.read_holding_registers(HOLDING_FREQ_SETPOINT, 1, self.slave_id)
+        hr = client.read_holding_registers(address=HOLDING_FREQ_SETPOINT, count=1, slave=self.slave_id)
         if not hr.isError():
             data["freq_setpoint"] = hr.registers[0] * 0.01
 
@@ -85,7 +85,7 @@ class VaconCoordinator(DataUpdateCoordinator):
 
     def write_run_stop(self, run: bool) -> bool:
         try:
-            result = self._get_client().write_coil(COIL_RUN_STOP, run, self.slave_id)
+            result = self._get_client().write_coil(address=COIL_RUN_STOP, value=run, slave=self.slave_id)
             return not result.isError()
         except Exception as err:
             _LOGGER.error("Erreur write RUN/STOP: %s", err)
@@ -93,7 +93,7 @@ class VaconCoordinator(DataUpdateCoordinator):
 
     def write_direction(self, reverse: bool) -> bool:
         try:
-            result = self._get_client().write_coil(COIL_DIRECTION, reverse, self.slave_id)
+            result = self._get_client().write_coil(address=COIL_DIRECTION, value=reverse, slave=self.slave_id)
             return not result.isError()
         except Exception as err:
             _LOGGER.error("Erreur write direction: %s", err)
@@ -102,7 +102,7 @@ class VaconCoordinator(DataUpdateCoordinator):
     def write_freq_setpoint(self, hz: float) -> bool:
         try:
             value = max(0, min(32000, int(hz * 100)))
-            result = self._get_client().write_register(HOLDING_FREQ_SETPOINT, value, self.slave_id)
+            result = self._get_client().write_register(address=HOLDING_FREQ_SETPOINT, value=value, slave=self.slave_id)
             return not result.isError()
         except Exception as err:
             _LOGGER.error("Erreur write consigne: %s", err)
@@ -111,8 +111,8 @@ class VaconCoordinator(DataUpdateCoordinator):
     def reset_fault(self) -> bool:
         try:
             client = self._get_client()
-            client.write_coil(2, True, self.slave_id)
-            client.write_coil(2, False, self.slave_id)
+            client.write_coil(address=2, value=True, slave=self.slave_id)
+            client.write_coil(address=2, value=False, slave=self.slave_id)
             return True
         except Exception as err:
             _LOGGER.error("Erreur reset défaut: %s", err)
