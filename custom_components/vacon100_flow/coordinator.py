@@ -45,7 +45,6 @@ class VaconCoordinator(DataUpdateCoordinator):
         client = self._get_client()
         data: dict[str, Any] = {}
 
-        # Lecture 11 input registers d'un coup
         result = client.read_input_registers(address=0, count=11, unit=self.slave_id)
         if result.isError():
             raise UpdateFailed(f"Erreur lecture registres: {result}")
@@ -71,7 +70,6 @@ class VaconCoordinator(DataUpdateCoordinator):
         data["at_setpoint"] = bool(sw & (1 << STATUS_AT_SETPOINT))
         data["remote"]      = bool(sw & (1 << STATUS_REMOTE))
 
-        # Consigne fréquence (holding)
         hr = client.read_holding_registers(address=HOLDING_FREQ_SETPOINT, count=1, unit=self.slave_id)
         if not hr.isError():
             data["freq_setpoint"] = hr.registers[0] * 0.01
