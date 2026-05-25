@@ -1,8 +1,7 @@
-cat > /config/custom_components/vacon100_flow/manifest.json << 'EOF'
 {
   "domain": "vacon100_flow",
   "name": "Vacon 100 FLOW",
-  "version": "1.1.1",
+  "version": "1.1.0",
   "documentation": "https://github.com/vx4500/vacon100-flow-ha",
   "requirements": [],
   "dependencies": [],
@@ -10,4 +9,3 @@ cat > /config/custom_components/vacon100_flow/manifest.json << 'EOF'
   "iot_class": "local_polling",
   "config_flow": true
 }
-EOF
